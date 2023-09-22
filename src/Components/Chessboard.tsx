@@ -110,6 +110,59 @@ function ChessBoard() {
         }
       }
     }
+
+    if (piece.type === "r") {
+      // explore
+      for (let i = 1; i < 8; i++) {
+        const nextPosTL = [position[0] - i, position[1] ];
+        const pieceAtPosTL = getPieceByPosition(nextPosTL);
+        if (!pieceAtPosTL || pieceAtPosTL.isDead) {
+          moves.push(nextPosTL);
+        } else {
+          if (piece.isWhite !== pieceAtPosTL.isWhite) {
+            edibles.push(nextPosTL);
+          }
+          break;
+        }
+      }
+      for (let i = 1; i < 8; i++) {
+        const nextPosTR = [position[0] , position[1] - i];
+        const pieceAtPosTR = getPieceByPosition(nextPosTR);
+        if (!pieceAtPosTR || pieceAtPosTR.isDead) {
+          moves.push(nextPosTR);
+        } else {
+          if (piece.isWhite !== pieceAtPosTR.isWhite) {
+            edibles.push(nextPosTR);
+          }
+          break;
+        }
+      }
+      for (let i = 1; i < 8; i++) {
+        const nextPosBL = [position[0] + i , position[1] ];
+        const pieceAtPosBL = getPieceByPosition(nextPosBL);
+        if (!pieceAtPosBL || pieceAtPosBL.isDead) {
+          moves.push(nextPosBL);
+        } else {
+          if (piece.isWhite !== pieceAtPosBL.isWhite) {
+            edibles.push(nextPosBL);
+          }
+          break;
+        }
+      }
+      for (let i = 1; i < 8; i++) {
+        const nextPosBR = [position[0] , position[1] + i];
+        const pieceAtPosBR = getPieceByPosition(nextPosBR);
+        if (!pieceAtPosBR || pieceAtPosBR.isDead) {
+          moves.push(nextPosBR);
+        } else {
+          if (piece.isWhite !== pieceAtPosBR.isWhite) {
+            edibles.push(nextPosBR);
+          }
+          break;
+        }
+      }
+    }
+
     setHighlightedSquares(moves);
     setEdibleSquares(edibles);
   };
@@ -145,10 +198,25 @@ function ChessBoard() {
     return knight;
   };
 
+  const makeRook = (position: number[], isWhite: boolean) => {
+    const knight: Piece = {
+      image: isWhite ? imgTowerLight : imgTowerDark,
+      position: position,
+      isWhite,
+      isDead: false,
+      type: "r",
+    };
+    return knight;
+  };
+ 
   const [pieces, setPieces] = useState<Piece[]>([
     makeKnight([3, 3], true),
+    makeRook([1,2 ], true),
     makeBishop([2, 2], false),
     makeKnight([0, 4], false),
+    makeKnight([0, 4], false),
+    makeRook([1,7 ], false),
+
   ]);
 
   const move = (initial: number[], end: number[]) => {

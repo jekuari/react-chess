@@ -1,13 +1,11 @@
 # ICP Chess
 
+# Please ensure you have `yarn` installed
+If you don't have `yarn` installed as a global dependency you can install it by running the command: `yarn`
+
 To start the project run `yarn` to install the dependencies and `yarn dev` to run the project in the development environment,
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This project uses prettier as the code formatter, so please make sure that you have it installed.
 
 ## Expanding the ESLint configuration
 

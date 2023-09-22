@@ -110,6 +110,43 @@ function ChessBoard() {
         }
       }
     }
+    if (piece.type === "p") {
+      // Determine direction based on pawn's color
+      const direction = piece.isWhite ? 1 : -1;
+
+      const oneSquareForward = [position[0], position[1] + direction];
+      const pieceInFront = getPieceByPosition(oneSquareForward);
+
+      if (!pieceInFront) {
+        moves.push(oneSquareForward);
+
+        // If it's pawn's first move
+        if (
+          (piece.isWhite && position[1] === 1) ||
+          (!piece.isWhite && position[1] === 6)
+        ) {
+          const twoSquaresForward = [position[0], position[1] + 2 * direction];
+          const pieceTwoSquaresForward = getPieceByPosition(twoSquaresForward);
+
+          if (!pieceTwoSquaresForward) {
+            moves.push(twoSquaresForward);
+          }
+        }
+
+        // Check diagonal captures
+        const leftCapture = [position[0] - 1, position[1] + direction];
+        const rightCapture = [position[0] + 1, position[1] + direction];
+        const pieceLeftCapture = getPieceByPosition(leftCapture);
+        const pieceRightCapture = getPieceByPosition(rightCapture);
+
+        if (pieceLeftCapture && pieceLeftCapture.isWhite !== piece.isWhite) {
+          edibles.push(leftCapture);
+        }
+        if (pieceRightCapture && pieceRightCapture.isWhite !== piece.isWhite) {
+          edibles.push(rightCapture);
+        }
+      }
+    }
     setHighlightedSquares(moves);
     setEdibleSquares(edibles);
   };
@@ -145,10 +182,37 @@ function ChessBoard() {
     return knight;
   };
 
+  const makePawn = (position: number[], isWhite: boolean) => {
+    const pawn: Piece = {
+      image: isWhite ? imgPawnLight : imgPawnDark,
+      position: position,
+      isWhite,
+      isDead: false,
+      type: "p",
+    };
+    return pawn;
+  };
+
   const [pieces, setPieces] = useState<Piece[]>([
     makeKnight([3, 3], true),
     makeBishop([2, 2], false),
     makeKnight([0, 4], false),
+    makePawn([0, 1], true),
+    makePawn([1, 1], true),
+    makePawn([2, 1], true),
+    makePawn([3, 1], true),
+    makePawn([4, 1], true),
+    makePawn([5, 1], true),
+    makePawn([6, 1], true),
+    makePawn([7, 1], true),
+    makePawn([1, 6], false),
+    makePawn([0, 6], false),
+    makePawn([2, 6], false),
+    makePawn([3, 6], false),
+    makePawn([4, 6], false),
+    makePawn([5, 6], false),
+    makePawn([6, 6], false),
+    makePawn([7, 6], false),
   ]);
 
   const move = (initial: number[], end: number[]) => {

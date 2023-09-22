@@ -311,6 +311,7 @@ function ChessBoard() {
 
   return (
     <div className="flex h-[100vh] w-full items-center justify-center">
+      <p>Turn: {turn}</p>
       <div className="grid w-max auto-rows-fr grid-cols-8">
         {Array.from(Array(64)).map((_, key) => {
           const piece = pieces.find(

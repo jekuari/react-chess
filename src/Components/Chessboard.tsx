@@ -120,7 +120,7 @@ function ChessBoard() {
       if (!pieceInFront) {
         moves.push(oneSquareForward);
 
-        // if it's pawn's first move
+        // If it's pawn's first move
         if (
           (piece.isWhite && position[1] === 1) ||
           (!piece.isWhite && position[1] === 6)
@@ -133,28 +133,16 @@ function ChessBoard() {
           }
         }
 
-        // check diagonal captures
+        // Check diagonal captures
         const leftCapture = [position[0] - 1, position[1] + direction];
         const rightCapture = [position[0] + 1, position[1] + direction];
         const pieceLeftCapture = getPieceByPosition(leftCapture);
         const pieceRightCapture = getPieceByPosition(rightCapture);
 
-        // check en-passsant captures
-        const leftEnPassant = [position[0] - 1, position[1]];
-        const rightEnPassant = [position[0] + 1, position[1]];
-
         if (pieceLeftCapture && pieceLeftCapture.isWhite !== piece.isWhite) {
           edibles.push(leftCapture);
         }
         if (pieceRightCapture && pieceRightCapture.isWhite !== piece.isWhite) {
-          edibles.push(rightCapture);
-        }
-
-        // check for en-passant captures
-        if (isEnPassantPossible(leftEnPassant, piece.isWhite)) {
-          edibles.push(leftCapture);
-        }
-        if (isEnPassantPossible(rightEnPassant, piece.isWhite)) {
           edibles.push(rightCapture);
         }
       }
@@ -227,11 +215,8 @@ function ChessBoard() {
     makePawn([7, 6], false),
   ]);
 
-  const [turn, setTurn] = useState(0);
-
   const move = (initial: number[], end: number[]) => {
     console.log("moving");
-    setTurn((prev) => prev + 1);
     if (
       !highlightedSquares.some((highlightedSquare) =>
         posEquals(highlightedSquare, end),
@@ -271,15 +256,6 @@ function ChessBoard() {
     });
   };
 
-  const isEnPassantPossible = (enPassantSquare, isWhiteTurn) => {
-    const pieceAtEnPassantSquare = getPieceByPosition(enPassantSquare);
-    return (
-      pieceAtEnPassantSquare &&
-      pieceAtEnPassantSquare.type === "p" &&
-      pieceAtEnPassantSquare.isWhite !== isWhiteTurn
-    );
-  };
-
   const [highlightedSquares, setHighlightedSquares] = useState<number[][]>([]);
   const [edibleSquares, setEdibleSquares] = useState<number[][]>([]);
   const [pieceToMove, setPieceToMove] = useState<number[] | null>(null);
@@ -310,8 +286,7 @@ function ChessBoard() {
   };
 
   return (
-    <div className="flex h-[100vh] w-full flex-col items-center justify-center">
-      <p>Turn: {turn}</p>
+    <div className="flex h-[100vh] w-full items-center justify-center">
       <div className="grid w-max auto-rows-fr grid-cols-8">
         {Array.from(Array(64)).map((_, key) => {
           const piece = pieces.find(

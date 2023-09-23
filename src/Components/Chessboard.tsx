@@ -110,7 +110,7 @@ function ChessBoard() {
         }
       }
     }
-     
+
     if (piece.type === "q") {
       // explore
       for (let i = 1; i < 8; i++) {
@@ -162,7 +162,7 @@ function ChessBoard() {
         }
       }
       for (let i = 1; i < 8; i++) {
-        const nextPosBR = [position[0] -i, position[1]];
+        const nextPosBR = [position[0] - i, position[1]];
         const pieceAtPosBR = getPieceByPosition(nextPosBR);
         if (!pieceAtPosBR || pieceAtPosBR.isDead) {
           moves.push(nextPosBR);
@@ -174,7 +174,7 @@ function ChessBoard() {
         }
       }
       for (let i = 1; i < 8; i++) {
-        const nextPosBR = [position[0] +i, position[1]];
+        const nextPosBR = [position[0] + i, position[1]];
         const pieceAtPosBR = getPieceByPosition(nextPosBR);
         if (!pieceAtPosBR || pieceAtPosBR.isDead) {
           moves.push(nextPosBR);
@@ -186,7 +186,7 @@ function ChessBoard() {
         }
       }
       for (let i = 1; i < 8; i++) {
-        const nextPosBR = [position[0] , position[1]+i];
+        const nextPosBR = [position[0], position[1] + i];
         const pieceAtPosBR = getPieceByPosition(nextPosBR);
         if (!pieceAtPosBR || pieceAtPosBR.isDead) {
           moves.push(nextPosBR);
@@ -198,7 +198,7 @@ function ChessBoard() {
         }
       }
       for (let i = 1; i < 8; i++) {
-        const nextPosBR = [position[0] , position[1]-i];
+        const nextPosBR = [position[0], position[1] - i];
         const pieceAtPosBR = getPieceByPosition(nextPosBR);
         if (!pieceAtPosBR || pieceAtPosBR.isDead) {
           moves.push(nextPosBR);
@@ -260,8 +260,6 @@ function ChessBoard() {
     makeKnight([3, 3], true),
     makeBishop([2, 2], false),
     makeKnight([0, 4], false),
-
-
 
     makeQueen([3, 0], true),
   ]);

@@ -125,15 +125,16 @@ function ChessBoard() {
       possibleMoves.forEach((direction) => {
         const x = position[0] + direction[0];
         const y = position[1] + direction[1];
-        const newPos = [x, y];
 
         if (x >= 0 && x <= 7 && y >= 0 && y <= 7) {
-          const pieceInPlace = getPieceByPosition(newPos);
-          if (!pieceInPlace || pieceInPlace.isWhite) {
-            moves.push(newPos);
+          const nextPosKing = [x, y];
+          const pieceInPlace = getPieceByPosition(nextPosKing);
+
+          if (!pieceInPlace || pieceInPlace.isDead) {
+            moves.push(nextPosKing);
           } else {
-            if (!pieceInPlace?.isWhite) {
-              edibles.push(newPos);
+            if (piece.isWhite !== pieceInPlace.isWhite) {
+              edibles.push(nextPosKing);
             }
           }
         }

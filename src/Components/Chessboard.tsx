@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
-import { calcMoves, posEquals } from "./Functions";
-import {
-  makeBishop,
-  makeKing,
-  makeKnight,
-  makePawn,
-  makeQueen,
-  makeRook,
-} from "./Makers";
+import { makeBoard, posEquals } from "./Functions";
+import { eatPiece } from "./Actions/EatPiece";
+import { movePiece } from "./Actions/MovePiece";
+import { calcMoves } from "./Actions/CalcMoves";
 
 export interface Piece {
   image: string | undefined;
@@ -23,40 +18,7 @@ function ChessBoard() {
   const [highlightedSquares, setHighlightedSquares] = useState<number[][]>([]);
   const [edibleSquares, setEdibleSquares] = useState<number[][]>([]);
   const [pieceToMove, setPieceToMove] = useState<number[] | null>(null);
-  const [pieces, setPieces] = useState<Piece[]>([
-    makeRook([0, 0], false),
-    makeKnight([1, 0], false),
-    makeBishop([2, 0], false),
-    makeQueen([3, 0], false),
-    makeKing([4, 0], false),
-    makeBishop([5, 0], false),
-    makeKnight([6, 0], false),
-    makeRook([7, 0], false),
-    makePawn([0, 1], false),
-    makePawn([1, 1], false),
-    makePawn([2, 1], false),
-    makePawn([3, 1], false),
-    makePawn([4, 1], false),
-    makePawn([5, 1], false),
-    makePawn([6, 1], false),
-    makePawn([7, 1], false),
-    makePawn([0, 6], true),
-    makePawn([1, 6], true),
-    makePawn([2, 6], true),
-    makePawn([3, 6], true),
-    makePawn([4, 6], true),
-    makePawn([5, 6], true),
-    makePawn([6, 6], true),
-    makePawn([7, 6], true),
-    makeRook([0, 7], true),
-    makeKnight([1, 7], true),
-    makeBishop([2, 7], true),
-    makeQueen([3, 7], true),
-    makeKing([4, 7], true),
-    makeBishop([5, 7], true),
-    makeKnight([6, 7], true),
-    makeRook([7, 7], true),
-  ]);
+  const [pieces, setPieces] = useState<Piece[]>(makeBoard());
 
   useEffect(() => {
     const whiteKing = pieces.find(
@@ -82,57 +44,24 @@ function ChessBoard() {
   };
 
   const move = (initial: number[], end: number[]) => {
-    const piece = getPieceByPosition(initial);
-    if (piece && piece.isWhite !== turnWhite) {
-      alert("Not your turn");
-      return;
-    }
-    setTurnWhite((prev) => !prev);
-    console.log("moving");
-    if (
-      !highlightedSquares.some((highlightedSquare) =>
-        posEquals(highlightedSquare, end),
-      ) &&
-      !edibleSquares.some((edibleSquare) => posEquals(edibleSquare, end))
-    )
-      return;
-    setPieces((prev) => {
-      const index = prev.findIndex((piece) => {
-        return posEquals(piece.position, initial);
-      });
-      if (index === -1) return prev;
-      prev[index].position = end;
-      prev[index].moves = [...prev[index].moves, end];
-      return prev;
-    });
+    movePiece(
+      initial,
+      end,
+      pieces,
+      setPieces,
+      turnWhite,
+      setTurnWhite,
+      highlightedSquares,
+      edibleSquares,
+    );
   };
 
   const eat = (initial: number[], end: number[]) => {
-    const piece = getPieceByPosition(initial);
-    if (piece && piece.isWhite !== turnWhite) {
-      alert("Not your turn");
-      return;
-    }
-    setPieces((prev) => {
-      let copy = [...prev];
+    eatPiece(initial, end, pieces, setPieces, turnWhite, setTurnWhite);
+  };
 
-      copy = copy.filter((piece) => {
-        return !posEquals(piece.position, end);
-      });
-
-      copy = copy.map((piece) => {
-        if (posEquals(piece.position, initial)) {
-          return {
-            ...piece,
-            position: end,
-          };
-        }
-        return piece;
-      });
-
-      return copy;
-    });
-    setTurnWhite((prev) => !prev);
+  const getMoves = (position: number[]) => {
+    return calcMoves(position, pieces, setHighlightedSquares, setEdibleSquares);
   };
 
   const handleCellClick = (position: number[]) => {
@@ -158,11 +87,6 @@ function ChessBoard() {
     }
     getMoves(position);
     setPieceToMove(position);
-  };
-
-  // modulerized this function to make this file more readable
-  const getMoves = (position: number[]) => {
-    return calcMoves(position, pieces, setHighlightedSquares, setEdibleSquares);
   };
 
   return (

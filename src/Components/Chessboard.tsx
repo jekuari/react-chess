@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import imgKingLight from "../assets/chesspieces/Chess_klt45.svg";
 import imgKingDark from "../assets/chesspieces/Chess_kdt45.svg";
 import imgQueenLight from "../assets/chesspieces/Chess_qlt45.svg";
@@ -21,17 +21,118 @@ interface Piece {
 }
 
 function ChessBoard() {
+  const [turnWhite, setTurnWhite] = useState(true);
+  const posEquals = (pos1: number[], pos2: number[]) => {
+    return pos1[0] === pos2[0] && pos1[1] === pos2[1];
+  };
+  const getPieceByPosition = (position: number[]): Piece | undefined => {
+    return pieces.find(
+      (piece) => posEquals(piece.position, position) && !piece.isDead,
+    );
+  };
+  // const getMoves = (position: number[]) => {
+  //   const piece = getPieceByPosition(position);
+  //   console.log(piece, "clicked piece");
+  //   if (!piece) {
+  //     setHighlightedSquares([]);
+  //     setEdibleSquares([]);
+  //     return;
+  //   }
+  // };
+
+  const move = (initial: number[], end: number[]) => {
+    const piece = getPieceByPosition(initial);
+    if (piece && piece.isWhite !== turnWhite) {
+      alert("Not your turn");
+      return;
+    }
+    setTurnWhite((prev) => !prev);
+    console.log("moving");
+    if (
+      !highlightedSquares.some((highlightedSquare) =>
+        posEquals(highlightedSquare, end),
+      ) &&
+      !edibleSquares.some((edibleSquare) => posEquals(edibleSquare, end))
+    )
+      return;
+    setPieces((prev) => {
+      const index = prev.findIndex((piece) => {
+        return posEquals(piece.position, initial);
+      });
+      if (index === -1) return prev;
+      prev[index].position = end;
+      return prev;
+    });
+  };
+
+  const eat = (initial: number[], end: number[]) => {
+    const piece = getPieceByPosition(initial);
+    if (piece && piece.isWhite !== turnWhite) {
+      alert("Not your turn");
+      return;
+    }
+    setPieces((prev) => {
+      let copy = [...prev];
+
+      copy = copy.filter((piece) => {
+        return !posEquals(piece.position, end);
+      });
+
+      copy = copy.map((piece) => {
+        if (posEquals(piece.position, initial)) {
+          return {
+            ...piece,
+            position: end,
+          };
+        }
+        return piece;
+      });
+
+      return copy;
+    });
+    setTurnWhite((prev) => !prev);
+  };
+
+  const [highlightedSquares, setHighlightedSquares] = useState<number[][]>([]);
+  const [edibleSquares, setEdibleSquares] = useState<number[][]>([]);
+  const [pieceToMove, setPieceToMove] = useState<number[] | null>(null);
+
+  const handleCellClick = (position: number[]) => {
+    const piece = getPieceByPosition(position);
+    if (!piece) {
+      if (pieceToMove) {
+        move(pieceToMove, position);
+        setPieceToMove(null);
+      }
+      setHighlightedSquares([]);
+      setEdibleSquares([]);
+      return;
+    }
+    if (
+      pieceToMove &&
+      edibleSquares.some((edibleSquare) => posEquals(edibleSquare, position))
+    ) {
+      eat(pieceToMove, position);
+      setHighlightedSquares([]);
+      setEdibleSquares([]);
+      setPieceToMove(null);
+      return;
+    }
+    getMoves(position);
+    setPieceToMove(position);
+  };
+
   const getMoves = (position: number[]) => {
     const piece = getPieceByPosition(position);
-    console.log(piece, "clicked piece");
     if (!piece) {
       setHighlightedSquares([]);
       setEdibleSquares([]);
       return;
     }
-
+    console.log(piece);
     let moves: number[][] = [];
     const edibles: number[][] = [];
+
     if (piece.type === "n") {
       const possibleMoves = [
         [position[0] + 1, position[1] + 2],
@@ -260,6 +361,7 @@ function ChessBoard() {
           break;
         }
       }
+    }
     if (piece.type === "k") {
       const possibleMoves = [
         [1, 0],
@@ -289,19 +391,9 @@ function ChessBoard() {
           }
         }
       });
-
     }
     setHighlightedSquares(moves);
     setEdibleSquares(edibles);
-  };
-
-  const posEquals = (pos1: number[], pos2: number[]) => {
-    return pos1[0] === pos2[0] && pos1[1] === pos2[1];
-  };
-  const getPieceByPosition = (position: number[]): Piece | undefined => {
-    return pieces.find(
-      (piece) => posEquals(piece.position, position) && !piece.isDead,
-    );
   };
 
   const makeKnight = (position: number[], isWhite: boolean) => {
@@ -335,7 +427,7 @@ function ChessBoard() {
       type: "k",
     };
     return king;
-    }
+  };
 
   const makeRook = (position: number[], isWhite: boolean) => {
     const knight: Piece = {
@@ -357,7 +449,6 @@ function ChessBoard() {
     };
     return knight;
   };
-
   const [pieces, setPieces] = useState<Piece[]>([
     makeKing([3, 0], true),
     makeKing([3, 7], false),
@@ -370,75 +461,22 @@ function ChessBoard() {
     makeQueen([3, 0], true),
   ]);
 
-  const move = (initial: number[], end: number[]) => {
-    console.log("moving");
-    if (
-      !highlightedSquares.some((highlightedSquare) =>
-        posEquals(highlightedSquare, end),
-      ) &&
-      !edibleSquares.some((edibleSquare) => posEquals(edibleSquare, end))
-    )
-      return;
-    setPieces((prev) => {
-      const index = prev.findIndex((piece) => {
-        return posEquals(piece.position, initial);
-      });
-      if (index === -1) return prev;
-      prev[index].position = end;
-      return prev;
-    });
-  };
+  useEffect(() => {
+    const whiteKing = pieces.find(
+      (piece) => piece.type === "k" && piece.isWhite,
+    );
+    const darkKing = pieces.find(
+      (piece) => piece.type === "k" && !piece.isWhite,
+    );
 
-  const eat = (initial: number[], end: number[]) => {
-    setPieces((prev) => {
-      let copy = [...prev];
-
-      copy = copy.filter((piece) => {
-        return !posEquals(piece.position, end);
-      });
-
-      copy = copy.map((piece) => {
-        if (posEquals(piece.position, initial)) {
-          return {
-            ...piece,
-            position: end,
-          };
-        }
-        return piece;
-      });
-
-      return copy;
-    });
-  };
-
-  const [highlightedSquares, setHighlightedSquares] = useState<number[][]>([]);
-  const [edibleSquares, setEdibleSquares] = useState<number[][]>([]);
-  const [pieceToMove, setPieceToMove] = useState<number[] | null>(null);
-
-  const handleCellClick = (position: number[]) => {
-    const piece = getPieceByPosition(position);
-    if (!piece) {
-      if (pieceToMove) {
-        move(pieceToMove, position);
-        setPieceToMove(null);
-      }
-      setHighlightedSquares([]);
-      setEdibleSquares([]);
-      return;
+    if (!whiteKing) {
+      alert("Black wins!");
     }
-    if (
-      pieceToMove &&
-      edibleSquares.some((edibleSquare) => posEquals(edibleSquare, position))
-    ) {
-      eat(pieceToMove, position);
-      setHighlightedSquares([]);
-      setEdibleSquares([]);
-      setPieceToMove(null);
-      return;
+
+    if (!darkKing) {
+      alert("White wins!");
     }
-    getMoves(position);
-    setPieceToMove(position);
-  };
+  }, [pieces]);
 
   return (
     <div className="flex h-[100vh] w-full items-center justify-center">

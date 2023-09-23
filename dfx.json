@@ -1,0 +1,11 @@
+{
+  "canisters": {
+    "jk-chess": {
+      "frontend": {
+        "entrypoint": "dist/index.html"
+      },
+      "source": ["dist/assets", "dist"],
+      "type": "assets"
+    }
+  }
+}

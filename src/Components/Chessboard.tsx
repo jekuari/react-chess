@@ -18,6 +18,7 @@ interface Piece {
   isWhite: boolean;
   isDead: boolean;
   type: "k" | "q" | "r" | "b" | "n" | "p";
+  moves: number[][];
 }
 
 function ChessBoard() {
@@ -61,6 +62,7 @@ function ChessBoard() {
       });
       if (index === -1) return prev;
       prev[index].position = end;
+      prev[index].moves = [...prev[index].moves, end];
       return prev;
     });
   };
@@ -125,6 +127,7 @@ function ChessBoard() {
   const getMoves = (position: number[]) => {
     const piece = getPieceByPosition(position);
     if (!piece) {
+      console.log("no piece");
       setHighlightedSquares([]);
       setEdibleSquares([]);
       return;
@@ -213,7 +216,18 @@ function ChessBoard() {
     }
     if (piece.type === "p") {
       // Determine direction based on pawn's color
-      const direction = piece.isWhite ? 1 : -1;
+      const direction = !piece.isWhite ? 1 : -1;
+
+      if (piece.moves.length === 0) {
+        const oneSquareForward = [position[0], position[1] + direction];
+        const twoSquareForward = [position[0], position[1] + 2 * direction];
+        const pieceInFront = getPieceByPosition(twoSquareForward);
+
+        if (!pieceInFront) {
+          setHighlightedSquares([oneSquareForward, twoSquareForward]);
+          return;
+        }
+      }
 
       const oneSquareForward = [position[0], position[1] + direction];
       const pieceInFront = getPieceByPosition(oneSquareForward);
@@ -440,6 +454,7 @@ function ChessBoard() {
       isWhite,
       isDead: false,
       type: "n",
+      moves: [],
     };
     return knight;
   };
@@ -451,6 +466,7 @@ function ChessBoard() {
       isWhite,
       isDead: false,
       type: "b",
+      moves: [],
     };
     return knight;
   };
@@ -462,6 +478,7 @@ function ChessBoard() {
       isWhite,
       isDead: false,
       type: "p",
+      moves: [],
     };
     return pawn;
   };
@@ -473,6 +490,7 @@ function ChessBoard() {
       isWhite,
       isDead: false,
       type: "k",
+      moves: [],
     };
     return king;
   };
@@ -484,6 +502,7 @@ function ChessBoard() {
       isWhite,
       isDead: false,
       type: "r",
+      moves: [],
     };
     return knight;
   };
@@ -494,38 +513,45 @@ function ChessBoard() {
       isWhite,
       isDead: false,
       type: "q",
+      moves: [],
     };
     return knight;
   };
-        
-  const [pieces, setPieces] = useState<Piece[]>([
-    makeKing([3, 0], true),
-    makeKing([3, 7], false),
-    makeKnight([3, 3], true),
-    makeRook([1, 2], true),
-    makeBishop([2, 2], false),
-    makeKnight([0, 4], false),
-    makePawn([0, 1], true),
-    makePawn([1, 1], true),
-    makePawn([2, 1], true),
-    makePawn([3, 1], true),
-    makePawn([4, 1], true),
-    makePawn([5, 1], true),
-    makePawn([6, 1], true),
-    makePawn([7, 1], true),
-    makePawn([1, 6], false),
-    makePawn([0, 6], false),
-    makePawn([2, 6], false),
-    makePawn([3, 6], false),
-    makePawn([4, 6], false),
-    makePawn([5, 6], false),
-    makePawn([6, 6], false),
-    makePawn([7, 6], false),
-    makeKnight([0, 4], false),
-    makeRook([1, 7], false),
-    makeQueen([3, 0], true),
-  ]);
 
+  const [pieces, setPieces] = useState<Piece[]>([
+    makeRook([0, 0], false),
+    makeKnight([1, 0], false),
+    makeBishop([2, 0], false),
+    makeQueen([3, 0], false),
+    makeKing([4, 0], false),
+    makeBishop([5, 0], false),
+    makeKnight([6, 0], false),
+    makeRook([7, 0], false),
+    makePawn([0, 1], false),
+    makePawn([1, 1], false),
+    makePawn([2, 1], false),
+    makePawn([3, 1], false),
+    makePawn([4, 1], false),
+    makePawn([5, 1], false),
+    makePawn([6, 1], false),
+    makePawn([7, 1], false),
+    makePawn([0, 6], true),
+    makePawn([1, 6], true),
+    makePawn([2, 6], true),
+    makePawn([3, 6], true),
+    makePawn([4, 6], true),
+    makePawn([5, 6], true),
+    makePawn([6, 6], true),
+    makePawn([7, 6], true),
+    makeRook([0, 7], true),
+    makeKnight([1, 7], true),
+    makeBishop([2, 7], true),
+    makeQueen([3, 7], true),
+    makeKing([4, 7], true),
+    makeBishop([5, 7], true),
+    makeKnight([6, 7], true),
+    makeRook([7, 7], true),
+  ]);
   useEffect(() => {
     const whiteKing = pieces.find(
       (piece) => piece.type === "k" && piece.isWhite,

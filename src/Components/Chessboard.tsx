@@ -260,6 +260,36 @@ function ChessBoard() {
           break;
         }
       }
+    if (piece.type === "k") {
+      const possibleMoves = [
+        [1, 0],
+        [1, 1],
+        [0, 1],
+        [-1, 1],
+        [-1, 0],
+        [-1, -1],
+        [0, -1],
+        [1, -1],
+      ];
+
+      possibleMoves.forEach((direction) => {
+        const x = position[0] + direction[0];
+        const y = position[1] + direction[1];
+
+        if (x >= 0 && x <= 7 && y >= 0 && y <= 7) {
+          const nextPosKing = [x, y];
+          const pieceInPlace = getPieceByPosition(nextPosKing);
+
+          if (!pieceInPlace || pieceInPlace.isDead) {
+            moves.push(nextPosKing);
+          } else {
+            if (piece.isWhite !== pieceInPlace.isWhite) {
+              edibles.push(nextPosKing);
+            }
+          }
+        }
+      });
+
     }
     setHighlightedSquares(moves);
     setEdibleSquares(edibles);
@@ -296,6 +326,17 @@ function ChessBoard() {
     return knight;
   };
 
+  const makeKing = (position: number[], isWhite: boolean) => {
+    const king: Piece = {
+      image: isWhite ? imgKingLight : imgKingDark,
+      position: position,
+      isWhite,
+      isDead: false,
+      type: "k",
+    };
+    return king;
+    }
+
   const makeRook = (position: number[], isWhite: boolean) => {
     const knight: Piece = {
       image: isWhite ? imgTowerLight : imgTowerDark,
@@ -318,6 +359,8 @@ function ChessBoard() {
   };
 
   const [pieces, setPieces] = useState<Piece[]>([
+    makeKing([3, 0], true),
+    makeKing([3, 7], false),
     makeKnight([3, 3], true),
     makeRook([1, 2], true),
     makeBishop([2, 2], false),

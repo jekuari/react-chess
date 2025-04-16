@@ -1,4 +1,4 @@
-# ICP Chess
+# React based chess game
 
 # Please ensure you have `yarn` installed
 If you don't have `yarn` installed as a global dependency you can install it by running the command: `npm install -g yarn`

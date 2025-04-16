@@ -1,37 +1,47 @@
-import { Piece } from "../Chessboard";
+import { Coordinate, Move, Piece } from "../Chessboard";
 import { posEquals } from "../Functions";
 
 export const calcKnightMoves = (
-  position: number[],
+  position: Coordinate,
   pieces: Piece[],
   piece: Piece,
-) => {
-  let moves: number[][] = [];
-  const edibles: number[][] = [];
+): Move[] => {
+  const moves: Move[] = [];
   const possibleMoves = [
-    [position[0] + 1, position[1] + 2],
-    [position[0] + 1, position[1] - 2],
-    [position[0] - 1, position[1] + 2],
-    [position[0] - 1, position[1] - 2],
-    [position[0] + 2, position[1] + 1],
-    [position[0] + 2, position[1] - 1],
-    [position[0] - 2, position[1] + 1],
-    [position[0] - 2, position[1] - 1],
+    { x: position.x + 1, y: position.y + 2 },
+    { x: position.x + 1, y: position.y - 2 },
+    { x: position.x - 1, y: position.y + 2 },
+    { x: position.x - 1, y: position.y - 2 },
+    { x: position.x + 2, y: position.y + 1 },
+    { x: position.x + 2, y: position.y - 1 },
+    { x: position.x - 2, y: position.y + 1 },
+    { x: position.x - 2, y: position.y - 1 },
   ];
-  moves = possibleMoves.filter((move) => {
-    if (move[0] < 0 || move[0] > 7 || move[1] < 0 || move[1] > 7) {
-      return false;
+
+  possibleMoves.forEach((move) => {
+    if (move.x < 0 || move.x > 7 || move.y < 0 || move.y > 7) {
+      return;
     }
     const pieceInPlace = pieces.find((piece) =>
       posEquals(move, piece.position),
     );
-    if (pieceInPlace) {
-      if (pieceInPlace.isWhite !== piece.isWhite) {
-        edibles.push(pieceInPlace.position);
-      }
-      return false;
+    if (pieceInPlace && pieceInPlace.isWhite !== piece.isWhite) {
+      moves.push({
+        piece: piece,
+        from: position,
+        to: move,
+        capturing: pieceInPlace,
+      });
     }
-    return true;
+
+    if (!pieceInPlace) {
+      moves.push({
+        piece: piece,
+        from: position,
+        to: move,
+        capturing: null,
+      });
+    }
   });
-  return { moves, edibles };
+  return moves;
 };

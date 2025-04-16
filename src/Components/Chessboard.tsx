@@ -1,24 +1,40 @@
-import { useEffect, useState } from "react";
-import { makeBoard, posEquals } from "./Functions";
-import { eatPiece } from "./Actions/EatPiece";
-import { movePiece } from "./Actions/MovePiece";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { calcMoves } from "./Actions/CalcMoves";
+import { executeMove } from "./Actions/ExecuteMove";
+import {
+  filterOutMovesThatLeaveKingInCheck,
+  isKingInCheck,
+  makeBoard,
+  posEquals,
+} from "./Functions";
 
 export interface Piece {
   image: string | undefined;
-  position: number[];
+  position: Coordinate;
   isWhite: boolean;
   isDead: boolean;
   type: "k" | "q" | "r" | "b" | "n" | "p";
-  moves: number[][];
+  moves: Coordinate[];
+}
+
+export interface Coordinate {
+  x: number;
+  y: number;
+}
+
+export interface Move {
+  piece: Piece;
+  from: Coordinate;
+  to: Coordinate;
+  capturing: Piece | null;
+  secondaryMove?: Move;
 }
 
 function ChessBoard() {
-  const [turnWhite, setTurnWhite] = useState(true);
-  const [highlightedSquares, setHighlightedSquares] = useState<number[][]>([]);
-  const [edibleSquares, setEdibleSquares] = useState<number[][]>([]);
-  const [pieceToMove, setPieceToMove] = useState<number[] | null>(null);
+  const [isWhiteTurn, setIsWhiteTurn] = useState(true);
+  const [possibleMoves, setPossibleMoves] = useState<Move[]>([]);
   const [pieces, setPieces] = useState<Piece[]>(makeBoard());
+  const [history, setHistory] = useState<Move[]>([]);
 
   useEffect(() => {
     const whiteKing = pieces.find(
@@ -27,6 +43,8 @@ function ChessBoard() {
     const darkKing = pieces.find(
       (piece) => piece.type === "k" && !piece.isWhite,
     );
+
+    // TODO: Improve logic
 
     if (!whiteKing) {
       alert("Black wins!");
@@ -37,84 +55,120 @@ function ChessBoard() {
     }
   }, [pieces]);
 
-  const getPieceByPosition = (position: number[]): Piece | undefined => {
-    return pieces.find(
-      (piece) => posEquals(piece.position, position) && !piece.isDead,
-    );
-  };
+  const getMoves = useCallback(
+    (piece: Piece) => {
+      return calcMoves({ piece, pieces, history });
+    },
+    [pieces, history],
+  );
 
-  const move = (initial: number[], end: number[]) => {
-    movePiece(
-      initial,
-      end,
-      pieces,
-      setPieces,
-      turnWhite,
-      setTurnWhite,
-      highlightedSquares,
-      edibleSquares,
-    );
-  };
+  const kingOnCheck = useMemo(() => {
+    const v = isKingInCheck({ pieces, history });
+    return v;
+  }, [pieces, history]);
 
-  const eat = (initial: number[], end: number[]) => {
-    eatPiece(initial, end, pieces, setPieces, turnWhite, setTurnWhite);
-  };
+  const handleCellClick = useCallback(
+    ({ piece, move }: { piece?: Piece; move: Move | undefined }) => {
+      if (move) {
+        setPieces(
+          executeMove({
+            move,
+            pieces,
+          }),
+        );
 
-  const getMoves = (position: number[]) => {
-    return calcMoves(position, pieces, setHighlightedSquares, setEdibleSquares);
-  };
-
-  const handleCellClick = (position: number[]) => {
-    const piece = getPieceByPosition(position);
-    if (!piece) {
-      if (pieceToMove) {
-        move(pieceToMove, position);
-        setPieceToMove(null);
+        setHistory((prev) => [...prev, move]);
+        setIsWhiteTurn((prev) => !prev);
+        setPossibleMoves([]);
+        return;
       }
-      setHighlightedSquares([]);
-      setEdibleSquares([]);
-      return;
-    }
-    if (
-      pieceToMove &&
-      edibleSquares.some((edibleSquare) => posEquals(edibleSquare, position))
-    ) {
-      eat(pieceToMove, position);
-      setHighlightedSquares([]);
-      setEdibleSquares([]);
-      setPieceToMove(null);
-      return;
-    }
-    getMoves(position);
-    setPieceToMove(position);
-  };
+
+      if (piece && piece.isWhite !== isWhiteTurn) {
+        setPossibleMoves([]);
+        return;
+      }
+
+      if (!piece) {
+        setPossibleMoves([]);
+        return;
+      }
+
+      const moves = getMoves(piece);
+
+      const movesWithoutLeavingTheKingOnCheck =
+        filterOutMovesThatLeaveKingInCheck({
+          pieces,
+          history,
+          moves,
+        });
+
+      setPossibleMoves(movesWithoutLeavingTheKingOnCheck);
+    },
+    [pieces, getMoves, isWhiteTurn, history, kingOnCheck],
+  );
 
   return (
     <div className="flex h-[100vh] w-full items-center justify-center">
       <div className="grid w-max auto-rows-fr grid-cols-8">
         {Array.from(Array(64)).map((_, key) => {
           const piece = pieces.find(
-            (piece) => piece.position[0] + piece.position[1] * 8 === key,
+            (piece) => piece.position.x + piece.position.y * 8 === key,
           );
 
-          const thisSquare = [key % 8, Math.floor(key / 8)];
+          const thisSquare = { x: key % 8, y: Math.floor(key / 8) };
 
-          const isHighlighted = highlightedSquares.some((highlightedSquare) => {
-            return posEquals(highlightedSquare, thisSquare);
-          });
+          let typeOfSquare: "edible" | "highlighted" | "normal" = "normal";
+          let move: Move | undefined = undefined;
 
-          const isEdible = edibleSquares.some((edibleSquare) => {
-            return posEquals(edibleSquare, thisSquare);
-          });
+          for (const possibleMove of possibleMoves) {
+            if (
+              posEquals(possibleMove.to, thisSquare) &&
+              !possibleMove.capturing
+            ) {
+              typeOfSquare = "highlighted";
+              move = possibleMove;
+              break;
+            }
+
+            if (
+              posEquals(possibleMove.to, thisSquare) &&
+              possibleMove.capturing
+            ) {
+              typeOfSquare = "edible";
+              move = possibleMove;
+              break;
+            }
+          }
+
+          let isThisKingOnCheck = false;
+          if (
+            piece &&
+            kingOnCheck === "white" &&
+            piece.isWhite &&
+            piece.type === "k"
+          ) {
+            isThisKingOnCheck = true;
+          }
+
+          if (
+            piece &&
+            kingOnCheck === "black" &&
+            !piece.isWhite &&
+            piece.type === "k"
+          ) {
+            isThisKingOnCheck = true;
+          }
 
           return (
             <button
               key={`piece-${key}`}
               className={`flex h-[5rem] w-[5rem] items-center justify-center p-2 ${
-                isEdible
+                typeOfSquare === "edible"
                   ? "bg-red-500"
-                  : isHighlighted
+                  : typeOfSquare === "highlighted"
                   ? "bg-green-500 hover:cursor-pointer"
+                  : isThisKingOnCheck
+                  ? "bg-orange-500"
                   : Math.floor(key / 8) % 2 === 0
                   ? key % 2 === 0
                     ? "bg-neutral-100"
@@ -125,7 +179,7 @@ function ChessBoard() {
               } ${piece ? "hover:cursor-pointer" : "hover:cursor-default"}`}
               onClick={(e) => {
                 e.preventDefault();
-                handleCellClick(thisSquare);
+                handleCellClick({ piece, move });
               }}
             >
               {piece && !piece.isDead && (

@@ -1,4 +1,4 @@
-import { Piece } from "./Chessboard";
+import { Coordinate, Piece } from "./Chessboard";
 import imgKingLight from "../assets/chesspieces/Chess_klt45.svg";
 import imgKingDark from "../assets/chesspieces/Chess_kdt45.svg";
 import imgQueenLight from "../assets/chesspieces/Chess_qlt45.svg";
@@ -12,7 +12,7 @@ import imgKnightDark from "../assets/chesspieces/Chess_ndt45.svg";
 import imgPawnLight from "../assets/chesspieces/Chess_plt45.svg";
 import imgPawnDark from "../assets/chesspieces/Chess_pdt45.svg";
 
-export const makeKnight = (position: number[], isWhite: boolean) => {
+export const makeKnight = (position: Coordinate, isWhite: boolean) => {
   const knight: Piece = {
     image: isWhite ? imgKnightLight : imgKnightDark,
     position: position,
@@ -24,7 +24,7 @@ export const makeKnight = (position: number[], isWhite: boolean) => {
   return knight;
 };
 
-export const makeBishop = (position: number[], isWhite: boolean) => {
+export const makeBishop = (position: Coordinate, isWhite: boolean) => {
   const bishop: Piece = {
     image: isWhite ? imgBishopLight : imgBishopDark,
     position: position,
@@ -36,7 +36,7 @@ export const makeBishop = (position: number[], isWhite: boolean) => {
   return bishop;
 };
 
-export const makePawn = (position: number[], isWhite: boolean) => {
+export const makePawn = (position: Coordinate, isWhite: boolean) => {
   const pawn: Piece = {
     image: isWhite ? imgPawnLight : imgPawnDark,
     position: position,
@@ -48,7 +48,7 @@ export const makePawn = (position: number[], isWhite: boolean) => {
   return pawn;
 };
 
-export const makeKing = (position: number[], isWhite: boolean) => {
+export const makeKing = (position: Coordinate, isWhite: boolean) => {
   const king: Piece = {
     image: isWhite ? imgKingLight : imgKingDark,
     position: position,
@@ -60,7 +60,7 @@ export const makeKing = (position: number[], isWhite: boolean) => {
   return king;
 };
 
-export const makeRook = (position: number[], isWhite: boolean) => {
+export const makeRook = (position: Coordinate, isWhite: boolean) => {
   const rook: Piece = {
     image: isWhite ? imgTowerLight : imgTowerDark,
     position: position,
@@ -71,7 +71,7 @@ export const makeRook = (position: number[], isWhite: boolean) => {
   };
   return rook;
 };
-export const makeQueen = (position: number[], isWhite: boolean) => {
+export const makeQueen = (position: Coordinate, isWhite: boolean) => {
   const queen: Piece = {
     image: isWhite ? imgQueenLight : imgQueenDark,
     position: position,

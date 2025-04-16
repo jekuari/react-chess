@@ -1,62 +1,107 @@
-import { Piece } from "../Chessboard";
-import { getPieceByPosition } from "../Functions";
+import { Coordinate, Move, Piece } from "../Chessboard";
+import { canEnPassant, getPieceByPosition } from "../Functions";
 
 export const calcPawnMoves = (
-  position: number[],
+  position: Coordinate,
   pieces: Piece[],
   piece: Piece,
+  history: Move[],
 ) => {
-  const moves: number[][] = [];
-  const edibles: number[][] = [];
-  // Determine direction based on pawn's color
+  const moves: Move[] = [];
   const direction = !piece.isWhite ? 1 : -1;
 
   if (piece.moves.length === 0) {
-    const oneSquareForward = [position[0], position[1] + direction];
-    const twoSquareForward = [position[0], position[1] + 2 * direction];
-    const pieceInFront = getPieceByPosition(twoSquareForward, pieces);
+    const oneSquareForward = { x: position.x, y: position.y + direction };
+    const twoSquareForward = { x: position.x, y: position.y + 2 * direction };
+    const pieceInFront = getPieceByPosition(oneSquareForward, pieces);
+    const pieceTwoSquaresForward = getPieceByPosition(twoSquareForward, pieces);
 
     if (!pieceInFront) {
-      moves.push(oneSquareForward);
-      moves.push(twoSquareForward);
-      return { moves, edibles };
+      moves.push({
+        piece,
+        from: position,
+        to: oneSquareForward,
+        capturing: null,
+      });
+
+      if (!pieceTwoSquaresForward) {
+        moves.push({
+          piece,
+          from: position,
+          to: twoSquareForward,
+          capturing: null,
+        });
+      }
     }
   }
 
-  const oneSquareForward = [position[0], position[1] + direction];
+  const oneSquareForward = { x: position.x, y: position.y + direction };
   const pieceInFront = getPieceByPosition(oneSquareForward, pieces);
 
   if (!pieceInFront) {
-    moves.push(oneSquareForward);
+    moves.push({
+      piece,
+      from: position,
+      to: oneSquareForward,
+      capturing: null,
+    });
+  }
 
-    // If it's pawn's first move
-    if (
-      (piece.isWhite && position[1] === 1) ||
-      (!piece.isWhite && position[1] === 6)
-    ) {
-      const twoSquaresForward = [position[0], position[1] + 2 * direction];
-      const pieceTwoSquaresForward = getPieceByPosition(
-        twoSquaresForward,
-        pieces,
-      );
+  const leftCapture = { x: position.x - 1, y: position.y + direction };
+  const rightCapture = { x: position.x + 1, y: position.y + direction };
 
-      if (!pieceTwoSquaresForward) {
-        moves.push(twoSquaresForward);
-      }
+  const pieceLeftCapture = getPieceByPosition(leftCapture, pieces);
+  const pieceRightCapture = getPieceByPosition(rightCapture, pieces);
+
+  if (pieceLeftCapture && pieceLeftCapture.isWhite !== piece.isWhite) {
+    moves.push({
+      piece,
+      from: position,
+      to: leftCapture,
+      capturing: pieceLeftCapture,
+    });
+  }
+  if (pieceRightCapture && pieceRightCapture.isWhite !== piece.isWhite) {
+    moves.push({
+      piece,
+      from: position,
+      to: rightCapture,
+      capturing: pieceRightCapture,
+    });
+  }
+
+  const isEnPassantPossible = canEnPassant({
+    history,
+    pieces,
+    position,
+  });
+  if (isEnPassantPossible) {
+    const pieceLeft = getPieceByPosition(
+      { x: position.x - 1, y: position.y },
+      pieces,
+    );
+    if (isEnPassantPossible === "left" && pieceLeft) {
+      moves.push({
+        piece,
+        from: position,
+        to: leftCapture,
+        capturing: pieceLeft,
+      });
     }
 
-    // Check diagonal captures
-    const leftCapture = [position[0] - 1, position[1] + direction];
-    const rightCapture = [position[0] + 1, position[1] + direction];
-    const pieceLeftCapture = getPieceByPosition(leftCapture, pieces);
-    const pieceRightCapture = getPieceByPosition(rightCapture, pieces);
-
-    if (pieceLeftCapture && pieceLeftCapture.isWhite !== piece.isWhite) {
-      edibles.push(leftCapture);
-    }
-    if (pieceRightCapture && pieceRightCapture.isWhite !== piece.isWhite) {
-      edibles.push(rightCapture);
+    const pieceRight = getPieceByPosition(
+      { x: position.x + 1, y: position.y },
+      pieces,
+    );
+    if (isEnPassantPossible === "right" && pieceRight) {
+      moves.push({
+        piece,
+        from: position,
+        to: rightCapture,
+        capturing: pieceRight,
+      });
     }
   }
-  return { moves, edibles };
+
+  return moves;
 };

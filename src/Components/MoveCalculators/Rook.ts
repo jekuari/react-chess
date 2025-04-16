@@ -1,61 +1,100 @@
-import { Piece } from "../Chessboard";
+import { Coordinate, Move, Piece } from "../Chessboard";
 import { getPieceByPosition } from "../Functions";
 
 export const calcRookMoves = (
-  position: number[],
+  position: Coordinate,
   pieces: Piece[],
   piece: Piece,
 ) => {
-  const moves: number[][] = [];
-  const edibles: number[][] = [];
+  const moves: Move[] = [];
   // explore
   for (let i = 1; i < 8; i++) {
-    const nextPosTL = [position[0] - i, position[1]];
+    const nextPosTL = { x: position.x - i, y: position.y };
     const pieceAtPosTL = getPieceByPosition(nextPosTL, pieces);
     if (!pieceAtPosTL || pieceAtPosTL.isDead) {
-      moves.push(nextPosTL);
+      moves.push({
+        piece,
+        from: position,
+        to: nextPosTL,
+        capturing: null,
+      });
     } else {
       if (piece.isWhite !== pieceAtPosTL.isWhite) {
-        edibles.push(nextPosTL);
+        moves.push({
+          piece,
+          from: position,
+          to: nextPosTL,
+          capturing: pieceAtPosTL,
+        });
       }
       break;
     }
   }
   for (let i = 1; i < 8; i++) {
-    const nextPosTR = [position[0], position[1] - i];
+    const nextPosTR = { x: position.x, y: position.y - i };
     const pieceAtPosTR = getPieceByPosition(nextPosTR, pieces);
     if (!pieceAtPosTR || pieceAtPosTR.isDead) {
-      moves.push(nextPosTR);
+      moves.push({
+        piece,
+        from: position,
+        to: nextPosTR,
+        capturing: null,
+      });
     } else {
       if (piece.isWhite !== pieceAtPosTR.isWhite) {
-        edibles.push(nextPosTR);
+        moves.push({
+          piece,
+          from: position,
+          to: nextPosTR,
+          capturing: pieceAtPosTR,
+        });
       }
       break;
     }
   }
   for (let i = 1; i < 8; i++) {
-    const nextPosBL = [position[0] + i, position[1]];
+    const nextPosBL = { x: position.x + i, y: position.y };
     const pieceAtPosBL = getPieceByPosition(nextPosBL, pieces);
     if (!pieceAtPosBL || pieceAtPosBL.isDead) {
-      moves.push(nextPosBL);
+      moves.push({
+        piece,
+        from: position,
+        to: nextPosBL,
+        capturing: null,
+      });
     } else {
       if (piece.isWhite !== pieceAtPosBL.isWhite) {
-        edibles.push(nextPosBL);
+        moves.push({
+          piece,
+          from: position,
+          to: nextPosBL,
+          capturing: pieceAtPosBL,
+        });
       }
       break;
     }
   }
   for (let i = 1; i < 8; i++) {
-    const nextPosBR = [position[0], position[1] + i];
+    const nextPosBR = { x: position.x, y: position.y + i };
     const pieceAtPosBR = getPieceByPosition(nextPosBR, pieces);
     if (!pieceAtPosBR || pieceAtPosBR.isDead) {
-      moves.push(nextPosBR);
+      moves.push({
+        piece,
+        from: position,
+        to: nextPosBR,
+        capturing: null,
+      });
     } else {
       if (piece.isWhite !== pieceAtPosBR.isWhite) {
-        edibles.push(nextPosBR);
+        moves.push({
+          piece,
+          from: position,
+          to: nextPosBR,
+          capturing: pieceAtPosBR,
+        });
       }
       break;
     }
   }
-  return { moves, edibles };
+  return moves;
 };
